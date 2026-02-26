@@ -82,15 +82,23 @@ class Manager
 
         if ('variable' == $type) {
             foreach ($data['variations'] as $variation) {
-                $variation_api_class = new \WC_REST_Product_Variations_Controller();
-                $response = $variation_api_class->get_item(
-                    [
-                        'id' => $variation,
-                        'product_id' => $variation,
-                        'context' => 'view'
-                    ]
-                );
-                $variation_data[] = $response->get_data();
+                try {
+                    $variation_api_class = new \WC_REST_Product_Variations_Controller();
+                    $var_response = $variation_api_class->get_item(
+                        [
+                            'id' => $variation,
+                            'product_id' => $variation,
+                            'context' => 'view'
+                        ]
+                    );
+                    if (!is_wp_error($var_response)) {
+                        $variation_data[] = $var_response->get_data();
+                    }
+                } catch (\Exception $e) {
+                    error_log('wePOS: Error cargando variation ' . $variation . ': ' . $e->getMessage());
+                } catch (\Error $e) {
+                    error_log('wePOS: Fatal error cargando variation ' . $variation . ': ' . $e->getMessage());
+                }
             }
         }
 
